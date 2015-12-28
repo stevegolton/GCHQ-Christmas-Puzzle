@@ -1,0 +1,256 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace QRPuzzleSolver
+{
+	public partial class Form1 : Form
+	{
+		private int[] matrix;
+		int[] rule = new int[] {7, 3, 1, 1, 7};
+		//int[] rule = new int[] { 20 };
+
+
+		public Form1()
+		{
+			matrix = new int[25 * 25];
+
+			Set(3, 3);
+			Set(4, 3);
+			Set(12, 3);
+			Set(13, 3);
+			Set(21, 3);
+
+			Set(6, 8);
+			Set(7, 8);
+			Set(10, 8);
+			Set(14, 8);
+			Set(15, 8);
+			Set(18, 8);
+
+			Set(6, 16);
+			Set(11, 16);
+			Set(16, 16);
+			Set(20, 16);
+
+			Set(3, 21);
+			Set(4, 21);
+			Set(9, 21);
+			Set(10, 21);
+			Set(15, 21);
+			Set(20, 21);
+			Set(21, 21);
+
+			int x = 0;
+			int spares = 0;
+
+			// First add up the numbers to calculate how many variations we have
+			foreach (int i in rule)
+			{
+				spares += i;
+			}
+			spares += (rule.Length - 1);
+
+			spares = 25 - spares;
+			int gaps = rule.Length + 1;
+
+			int[] buf = new int[25];
+
+			MessageBox.Show(String.Format("Detected {0} spares and {1} spaces", spares, gaps));
+
+			int[] gaprules = new int[gaps];
+			int permcount = 0;
+
+			while (GetNextPerm(gaps, spares, gaprules))
+			{
+				x = 0;
+				int blockIndex = 0;
+				x += gaprules[blockIndex++];
+				permcount++;
+
+				foreach (int i in rule)
+				{
+					int val = i;
+
+					// Draw on the rules
+					while (val-- > 0)
+						buf[x++]++;
+						//Potential(x++, 0);
+
+					x++;
+					x += gaprules[blockIndex++];
+				}
+			}
+
+			x = 0;
+			foreach(int i in buf)
+			{
+				if ( permcount == i)
+				{
+					Set(x++, 0);
+				}
+				else if ( i > 0 )
+				{
+					Potential(x++, 0);
+				}
+			}
+
+			InitializeComponent();
+			CreateBitmapAtRuntime();
+		}
+
+		void DoRow(int y, int[] rule)
+		{
+			int spares = 0;
+			int gaps;
+			int[] buf = new int[25];
+			int[] gapBuckets;
+			int permCount;
+			int x;
+			int gapBucketIndex;
+
+			// First add up the numbers to calculate how many variations we have
+			foreach (int i in rule)
+			{
+				spares += i;
+			}
+
+			// Add the manditory gaps
+			spares += (rule.Length - 1);
+
+			// Remove the number of occupied gaps from the total to get the number of spares
+			spares = 25 - spares;
+
+			// Calculate the number of gaps from the rule length + one at the beginning
+			// Allocate new bucket array for gaps to fit in
+			gaps = rule.Length + 1;
+			gapBuckets = new int[gaps];
+			permCount = 0;
+
+			while (GetNextPerm(gaps, spares, gapBuckets))
+			{
+				x = 0;
+				gapBucketIndex = 0;
+				x += gapBuckets[gapBucketIndex++];
+				permCount++;
+
+				foreach (int i in rule)
+				{
+					int val = i;
+
+					// Draw on the rules
+					while (val-- > 0)
+						buf[x++]++;
+					//Potential(x++, 0);
+
+					x++;
+					x += gaprules[blockIndex++];
+				}
+			}
+
+			x = 0;
+			foreach (int i in buf)
+			{
+				if (permcount == i)
+				{
+					Set(x++, 0);
+				}
+				else if (i > 0)
+				{
+					Potential(x++, 0);
+				}
+			}
+		}
+
+		bool GetNextPerm(int numBuckets, int numTokens, int[] buckets)
+		{
+			// Like counting in trinary... each iteraton add one to the first bucket,
+			// when each bucket overflows add one to the next bucket!
+
+			//bool bRunning = true;
+
+			while (true)
+			{
+				int sum = 0;
+				buckets[0]++;
+
+				for (int bInd = 0; bInd < numBuckets; bInd++)
+				{
+					if (buckets[bInd] > numTokens)
+					{
+						if (bInd + 1 == numBuckets)
+							return false;
+						else
+						{
+							buckets[bInd] = 0;
+							buckets[bInd + 1]++;
+						}
+					}
+				}
+
+				foreach (int i in buckets)
+				{
+					sum += i;
+				}
+
+				if (sum == numTokens)
+				{
+					return true;
+				}
+			}
+		}
+
+		public void Potential(int x, int y)
+		{
+			matrix[x + y * 25] = 1;
+		}
+
+		public void Set(int x, int y)
+		{
+			matrix[x + y * 25] = 2;
+		}
+
+		public void CreateBitmapAtRuntime()
+		{
+			Bitmap flag = new Bitmap(500, 500);
+			Graphics flagGraphics = Graphics.FromImage(flag);
+
+			int scale = 10;
+
+			for (int x = 0; x < 25; x++)
+			{
+				//flagGraphics.DrawLine(Pens.Black, x * scale, 0, x * scale, 25 * scale);
+				for (int y = 0; y < 25; y++)
+				{
+					if (2 == matrix[x + y*25])
+					{
+						flagGraphics.FillRectangle(Brushes.Black, x*scale, y*scale, scale, scale);
+					}
+
+					if (1 == matrix[x + y * 25])
+					{
+						flagGraphics.FillRectangle(Brushes.Blue, x * scale, y * scale, scale, scale);
+					}
+				}
+			}
+
+			for (int y = 0; y <= 25; y++)
+			{
+				flagGraphics.DrawLine(Pens.Black, 0, y * scale, 25 * scale, y * scale);
+			}
+
+			for (int x = 0; x <= 25; x++)
+			{
+				flagGraphics.DrawLine(Pens.Black, x * scale, 0, x * scale, 25 * scale);
+			}
+
+			pictureBox1.Image = flag;
+		}
+	}
+}
