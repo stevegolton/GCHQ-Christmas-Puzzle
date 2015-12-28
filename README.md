@@ -1,5 +1,5 @@
 # GCHQ-Christmas-Puzzle
-Programmatic solution to the GCHQ Christmas puzzle.
+Programmatic solution to the [GCHQ Christmas puzzle](http://www.gchq.gov.uk/press_and_media/news_and_features/Pages/Directors-Christmas-puzzle-2015.aspx).
 
 Summary
 -------------------------------
@@ -16,7 +16,7 @@ Build & Run Instructions
 -----------------------------
 On Windows open the solution in at least Microsoft Visual Studio 2013. Build and run in release mode. Press the button to run a single iteration. The algorithm is calculated in a background thread so the UI can update as the puzzle is being solved.
 
-As far as I know there is no way to run this on Linux as Winforms are incompatible with Mono :(...
+As far as I know there is no way to run this on Linux as I don't know how to build Winforms verbatim using Mono :( ...
 
 Algorithm
 ----------------------------
